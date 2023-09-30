@@ -4,7 +4,7 @@ namespace IdentityProject.ViewModels
 {
     public class SignInViewModel
     {
-        [EmailAddress(ErrorMessage ="Email alanı boş bırakılamaz")]
+        [EmailAddress(ErrorMessage ="Email formatına uygun bir mail giriniz")]
         [Required(ErrorMessage ="Email alanı boş bırakılamaz")]
         public string? Email { get; set; }
 

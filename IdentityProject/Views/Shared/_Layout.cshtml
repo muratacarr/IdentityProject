@@ -27,8 +27,25 @@
                         </li>
                     </ul>
                 </div>
-                <a class="btn btn-dark me-2" asp-controller="Home" asp-action="SignIn">Üye Giriş</a>
-                <a class="btn btn-dark" asp-controller="Home" asp-action="SignUp">Kayıt ol</a>
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <ul class="navbar-nav">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                @User.Identity.Name
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                                <li><a class="dropdown-item text-danger" asp-route-returnurl="/Home/SignIn" asp-controller="Member" asp-action="LogOut">Çıkış Yap</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                }
+                else
+                {
+                    <a class="btn btn-dark me-2" asp-controller="Home" asp-action="SignIn">Üye Giriş</a>
+                    <a class="btn btn-dark" asp-controller="Home" asp-action="SignUp">Kayıt ol</a>
+                }
+
             </div>
         </nav>
     </header>

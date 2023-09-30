@@ -1,6 +1,7 @@
 ﻿using IdentityProject.Entities.Context;
 using IdentityProject.Extensions;
 using IdentityProject.Models;
+using IdentityProject.Services;
 using IdentityProject.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -13,12 +14,14 @@ namespace IdentityProject.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly UserManager<AppUser> _UserManager;
         private readonly SignInManager<AppUser> _SignInManager;
+        private readonly IEmailService _EmailService;
 
-        public HomeController(ILogger<HomeController> logger, UserManager<AppUser> userManager, SignInManager<AppUser> signInManager)
+        public HomeController(ILogger<HomeController> logger, UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, IEmailService emailService)
         {
             _logger = logger;
             _UserManager = userManager;
             _SignInManager = signInManager;
+            _EmailService = emailService;
         }
 
         public IActionResult Index()
@@ -82,21 +85,60 @@ namespace IdentityProject.Controllers
                 return View();
             }
 
-            var signInResult= await _SignInManager.PasswordSignInAsync(hasUser,signInViewModel.Password,signInViewModel.RememberMe,false);
+            var signInResult= await _SignInManager.PasswordSignInAsync(hasUser,signInViewModel.Password,signInViewModel.RememberMe,true);
 
             if (signInResult.Succeeded)
             {
                 return Redirect(returnUrl);
             }
 
-            ModelState.AddModelErrorList(new List<string>() { "Email veya şifre yanlış" });
+            if (signInResult.IsLockedOut)
+            {
+                ModelState.AddModelErrorList(new List<string>() { "3 dakika boyunca giriş yapamazsınız" });
+                return View();
+            }
+
+            ModelState.AddModelErrorList(new List<string>() { "Email veya şifre yanlış" ,$"Başarısız giriş sayısı = {await _UserManager.GetAccessFailedCountAsync(hasUser)}"});
 
 
             return View();
         }
 
+        public IActionResult ForgetPassword()
+        {
+            return View();
+        }
+        [HttpPost]
+        public async Task<IActionResult> ForgetPassword(ForgetPasswordViewModel forgetPasswordViewModel)
+        {
+            var hasUser = await _UserManager.FindByEmailAsync(forgetPasswordViewModel.Email!);
 
+            if (hasUser == null)
+            {
+                ModelState.AddModelError(string.Empty, "Bu email adresine sahip kullanıcı bulunamamıştır.");
+                return View();
+            }
 
+            string passwordResetToken = await _UserManager.GeneratePasswordResetTokenAsync(hasUser);
+
+            var passwordRestLink = Url.Action("ResetPassword", "Home", new { userId=hasUser.Id,Token=passwordResetToken },HttpContext.Request.Scheme);
+
+            await _EmailService.SendResetPasswordEmail(passwordRestLink!,hasUser.Email!);
+
+            TempData["SuccessMessage"] = "Şifre yenileme linki, eposta adresine gönderilmiştir";
+
+            return RedirectToAction(nameof(ForgetPassword));
+        }
+
+        public IActionResult ResetPassword()
+        {
+            return View();
+        }
+        [HttpPost]
+        public IActionResult ResetPassword(ResetPasswordViewModel resetPasswordViewModel)
+        {
+            return View();
+        }
 
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

@@ -1,6 +1,9 @@
 using IdentityProject.Context;
 using IdentityProject.Entities.Context;
 using IdentityProject.Extensions;
+using IdentityProject.OptionsModels;
+using IdentityProject.Services;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,8 +16,27 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseSqlServer(builder.Configuration.GetConnectionString("SqlCon"));
 });
 
+builder.Services.Configure<SecurityStampValidatorOptions>(opt => 
+{
+    opt.ValidationInterval = TimeSpan.FromMinutes(30);
+});
+
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection(nameof(EmailSettings)));
+
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddIdentityWithExt();
 
+builder.Services.ConfigureApplicationCookie(opt =>
+{
+    var cookieBuilder = new CookieBuilder();
+
+    cookieBuilder.Name = "MuratIdentityCookie";
+    opt.Cookie = cookieBuilder;
+    opt.LoginPath = new PathString("/Home/SignIn");
+    opt.LogoutPath = new PathString("/Member/LogOut");
+    opt.ExpireTimeSpan = TimeSpan.FromDays(1);
+    opt.SlidingExpiration = true;
+});
 
 var app = builder.Build();
 
@@ -30,7 +52,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(

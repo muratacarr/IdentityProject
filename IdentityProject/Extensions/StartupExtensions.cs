@@ -1,5 +1,6 @@
 ﻿using IdentityProject.Context;
 using IdentityProject.Entities.Context;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace IdentityProject.Extensions
@@ -19,8 +20,12 @@ namespace IdentityProject.Extensions
                 opt.Password.RequireUppercase = false;
                 opt.Password.RequiredLength = 6;
 
+                opt.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(1);
+                opt.Lockout.MaxFailedAccessAttempts = 3;
 
-            }).AddEntityFrameworkStores<AppDbContext>();
+
+            }).AddDefaultTokenProviders()
+              .AddEntityFrameworkStores<AppDbContext>();
         }
     }
 }
