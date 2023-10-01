@@ -3,6 +3,7 @@ using IdentityProject.Extensions;
 using IdentityProject.Models;
 using IdentityProject.Services;
 using IdentityProject.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
@@ -28,7 +29,7 @@ namespace IdentityProject.Controllers
         {
             return View();
         }
-
+        [Authorize]
         public IActionResult Privacy()
         {
             return View();
@@ -52,7 +53,7 @@ namespace IdentityProject.Controllers
                 UserName = signUpViewModel.Username,
                 Email = signUpViewModel.Email,
                 PhoneNumber = signUpViewModel.Phone
-            }, signUpViewModel.PasswordConfirm);
+            }, signUpViewModel.PasswordConfirm!);
 
             if (identityResult.Succeeded)
             {
@@ -76,6 +77,11 @@ namespace IdentityProject.Controllers
         [HttpPost]
         public async Task<IActionResult> SignIn(SignInViewModel signInViewModel,string? returnUrl=null)
         {
+            if (!ModelState.IsValid)
+            {
+                return View();
+            }
+
             returnUrl = returnUrl ?? Url.Action("Index","Home");
 
             var hasUser=await _UserManager.FindByEmailAsync(signInViewModel.Email!);
@@ -130,13 +136,45 @@ namespace IdentityProject.Controllers
             return RedirectToAction(nameof(ForgetPassword));
         }
 
-        public IActionResult ResetPassword()
+        public IActionResult ResetPassword(string userId,string token)
         {
+            TempData["userId"] = userId;
+            TempData["token"] = token;
+
             return View();
         }
         [HttpPost]
-        public IActionResult ResetPassword(ResetPasswordViewModel resetPasswordViewModel)
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel resetPasswordViewModel)
         {
+            var userId = TempData["userId"];
+            var token = TempData["token"];
+
+            if (userId==null || token==null)
+            {
+                throw new Exception("Bir hata meydana geldi");
+            }
+
+            var hasUser=await _UserManager.FindByIdAsync(userId.ToString()!);
+
+            if (hasUser == null)
+            {
+                ModelState.AddModelError(string.Empty, "Kullanıcı bulunamamıştır.");
+                return View();
+            }
+
+            IdentityResult result= await _UserManager.ResetPasswordAsync(hasUser,token.ToString()!,resetPasswordViewModel.Password!);
+
+            if (result.Succeeded) 
+            {
+                await _UserManager.UpdateSecurityStampAsync(hasUser);
+                ViewData["SuccessMessage"] = "Şifreniz başarıyla yenilenmiştir";
+            }
+            else
+            {
+                ModelState.AddModelErrorList(result.Errors.Select(result => result.Description).ToList());
+            }
+
+
             return View();
         }
 
