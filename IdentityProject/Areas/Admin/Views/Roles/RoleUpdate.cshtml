@@ -1,0 +1,27 @@
+﻿
+@{
+    ViewData["Title"] = "RoleUpdate";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@model AdminModel.RoleUpdateViewModel
+<h1>RoleUpdate</h1>
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        @if (ViewData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-info" role="alert">
+                @ViewData["SuccessMessage"]
+            </div>
+        }
+        <form method="post" asp-area="Admin" asp-controller="Roles" asp-action="RoleUpdate">
+            <div class="mb-3">
+                <label class="form-label">Rol ismi</label>
+                <input class="form-control" asp-for="Name">
+                <input class="form-control" type="hidden" asp-for="Id">
+                <span class="text-danger" asp-validation-for="Name"></span>
+            </div>
+            <button type="submit" class="btn btn-primary">Kaydet</button>
+        </form>
+    </div>
+</div>

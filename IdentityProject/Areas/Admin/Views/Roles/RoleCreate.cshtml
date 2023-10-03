@@ -1,0 +1,19 @@
+﻿
+@{
+    ViewData["Title"] = "RoleCreate";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@model AdminModel.RolCreateViewModel
+<h1>RoleCreate</h1>
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <form method="post" asp-area="Admin" asp-controller="Roles" asp-action="RoleCreate">
+            <div class="mb-3">
+                <label class="form-label">Rol ismi</label>
+                <input class="form-control" asp-for="Name">
+                <span class="text-danger" asp-validation-for="Name"></span>
+            </div>
+            <button type="submit" class="btn btn-primary">Oluştur</button>
+        </form>
+    </div>
+</div>
