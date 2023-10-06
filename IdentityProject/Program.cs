@@ -17,7 +17,7 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseSqlServer(builder.Configuration.GetConnectionString("SqlCon"));
 });
 
-builder.Services.Configure<SecurityStampValidatorOptions>(opt => 
+builder.Services.Configure<SecurityStampValidatorOptions>(opt =>
 {
     opt.ValidationInterval = TimeSpan.FromMinutes(30);
 });
@@ -38,7 +38,7 @@ builder.Services.ConfigureApplicationCookie(opt =>
     opt.LoginPath = new PathString("/Home/SignIn");
     opt.LogoutPath = new PathString("/Member/LogOut");
     opt.ExpireTimeSpan = TimeSpan.FromDays(1);
-    //opt.AccessDeniedPath = new PathString("/Home/AccessDenied");
+    opt.AccessDeniedPath = new PathString("/Home/AccessDenied");
     opt.SlidingExpiration = true;
 });
 

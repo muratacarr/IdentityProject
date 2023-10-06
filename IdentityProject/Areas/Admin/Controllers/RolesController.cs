@@ -1,13 +1,16 @@
 ﻿using IdentityProject.Areas.Admin.Models;
 using IdentityProject.Entities.Context;
 using IdentityProject.Extensions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 
 namespace IdentityProject.Areas.Admin.Controllers
 {
+    [Authorize(Roles = "Admin")]
     [Area("Admin")]
     public class RolesController : Controller
     {
@@ -108,6 +111,8 @@ namespace IdentityProject.Areas.Admin.Controllers
 
         public async Task<IActionResult> AssignRoleToUser(string id)
         {
+            ViewBag.userId=id;
+
             var currentUser = await _userManager.FindByIdAsync(id);
             var roles = await _roleManager.Roles.ToListAsync();
             var userRoles=await _userManager.GetRolesAsync(currentUser);
@@ -132,9 +137,23 @@ namespace IdentityProject.Areas.Admin.Controllers
             return View(roleViewModelList);
         }
         [HttpPost]
-        public IActionResult AssignRoleToUser(List<AssignRoleToUserViewModel> assignRoleToUserViewModels)
+        public async Task<IActionResult> AssignRoleToUser(string userId,List<AssignRoleToUserViewModel> assignRoleToUserViewModels)
         {
-            return View();
+            var userToAssignRoles = await _userManager.FindByIdAsync(userId);
+
+            foreach (var role in assignRoleToUserViewModels)
+            {
+                if (role.Exist)
+                {
+                    await _userManager.AddToRoleAsync(userToAssignRoles, role.Name);
+                }
+                else
+                {
+                    await _userManager.RemoveFromRoleAsync(userToAssignRoles, role.Name);
+                }
+            }
+
+            return RedirectToAction(nameof(HomeController.UserList),"Home");
         }
     }
 }

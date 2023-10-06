@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 
 namespace IdentityProject.Areas.Admin.Controllers
 {
+    [Authorize(Roles ="Admin")]
     [Area("Admin")]
     public class HomeController : Controller
     {
