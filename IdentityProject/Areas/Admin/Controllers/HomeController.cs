@@ -27,7 +27,7 @@ namespace IdentityProject.Areas.Admin.Controllers
 
         public async Task<IActionResult> UserList()
         {
-            var userViewModelList =await _userManager.Users.Select(x => new UserViewModel()
+            var userViewModelList = await _userManager.Users.Select(x => new UserViewModel()
             {
                 Id = x.Id,
                 Name = x.UserName,
@@ -36,5 +36,6 @@ namespace IdentityProject.Areas.Admin.Controllers
 
             return View(userViewModelList);
         }
+
     }
 }

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using System.Security.Claims;
 
 namespace IdentityProject.Controllers
 {
@@ -55,18 +56,31 @@ namespace IdentityProject.Controllers
                 PhoneNumber = signUpViewModel.Phone
             }, signUpViewModel.PasswordConfirm!);
 
-            if (identityResult.Succeeded)
+
+
+
+            if (!identityResult.Succeeded)
             {
-                ViewData["SuccessMessage"] = "Üyelik Başarılı";
-                return View(nameof(HomeController.SignUp));
+                ModelState.AddModelErrorList(identityResult.Errors);
+                return View();
             }
 
-            foreach (IdentityError item in identityResult.Errors)
+            var exchangeExpireClaim = new Claim("ExchangeExpireDate",DateTime.Now.AddDays(1).ToString());
+
+            var user = await _UserManager.FindByNameAsync(signUpViewModel.Username!);
+
+            var claimResult= await _UserManager.AddClaimAsync(user!, exchangeExpireClaim);
+
+            if (!claimResult.Succeeded)
             {
-                ModelState.AddModelError(string.Empty, item.Description);
+                ModelState.AddModelErrorList(claimResult.Errors);
+                return View();
             }
-            ViewBag.ErrorMessage = "Gerekli Alanları doldurunuz";
-            return View(signUpViewModel);
+
+            ViewData["SuccessMessage"] = "Üyelik Başarılı";
+            return RedirectToAction(nameof(HomeController.SignIn));
+
+
         }
 
         public IActionResult SignIn()

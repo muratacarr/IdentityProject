@@ -1,8 +1,11 @@
+using IdentityProject.ClaimProviders;
 using IdentityProject.Context;
-using IdentityProject.Entities.Context;
 using IdentityProject.Extensions;
 using IdentityProject.OptionsModels;
+using IdentityProject.Requirements;
 using IdentityProject.Services;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
@@ -23,11 +26,25 @@ builder.Services.Configure<SecurityStampValidatorOptions>(opt =>
 });
 
 builder.Services.AddSingleton<IFileProvider>(new PhysicalFileProvider(Directory.GetCurrentDirectory()));
-
+builder.Services.AddScoped<IClaimsTransformation, UserClaimProvider>();
+builder.Services.AddScoped<IAuthorizationHandler, ExchangeExpireRequirementHandler>();
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection(nameof(EmailSettings)));
 
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddIdentityWithExt();
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("DenizliPolicy", policy =>
+    {
+        policy.RequireClaim("city", "denizli");
+    });
+
+    options.AddPolicy("ExchangePolicy", policy =>
+    {
+        policy.AddRequirements(new ExchangeExpireRequirement());
+    });
+});
 
 builder.Services.ConfigureApplicationCookie(opt =>
 {

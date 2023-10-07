@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.FileProviders;
+using System.Collections.Immutable;
 
 namespace IdentityProject.Controllers
 {
@@ -157,6 +158,28 @@ namespace IdentityProject.Controllers
 
             ViewBag.genderList = new SelectList(Enum.GetNames(typeof(Gender)));
             return View(userEditViewModelreturn);
+        }
+
+        public IActionResult ClaimList()
+        {
+            var userClaimList = User.Claims.Select(x => new ClaimViewModel
+            {
+                Issuer = x.Issuer,
+                Type = x.Type,
+                Value = x.Value,
+            }).ToList();
+
+            return View(userClaimList);
+        }
+        [Authorize(Policy = "DenizliPolicy")]
+        public IActionResult DenizliPage()
+        {
+            return View();
+        }
+        [Authorize(Policy = "ExchangePolicy")]
+        public IActionResult ExchangePage()
+        {
+            return View();
         }
     }
 }
