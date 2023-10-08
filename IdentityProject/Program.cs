@@ -17,7 +17,8 @@ builder.Services.AddControllersWithViews();
 
 builder.Services.AddDbContext<AppDbContext>(opt =>
 {
-    opt.UseSqlServer(builder.Configuration.GetConnectionString("SqlCon"));
+    //opt.UseSqlServer(builder.Configuration.GetConnectionString("SqlCon"));
+    opt.UseSqlite(builder.Configuration.GetConnectionString("SqliteCon"));
 });
 
 builder.Services.Configure<SecurityStampValidatorOptions>(opt =>
